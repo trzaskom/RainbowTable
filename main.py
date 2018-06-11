@@ -11,13 +11,13 @@ CHAR_BITS = 16
 GLOBAL_TAG = 1337
 
 
-def generate_chain(chains, steps, n):
+def generate_chain(chains, steps):
     results = ''
     plaintext = ''
 
     for c in chains:
         for _ in xrange(steps - 1):
-            plaintext = xxhash.xxh64(c).hexdigest()[:n]
+            plaintext = xxhash.xxh64(c).hexdigest()[:len(c)]
         hex_hash = xxhash.xxh64(plaintext).hexdigest()
         results += plaintext + ":" + hex_hash + "\n"
     return results
@@ -61,7 +61,7 @@ def main():
         piece = comm.recv(source=0, tag=GLOBAL_TAG)
 
     if rank == 0:
-        result = generate_chain(piece, steps, length)
+        result = generate_chain(piece, steps)
 
         for i in xrange(1, size):
             result += comm.recv(source=i, tag=GLOBAL_TAG)
@@ -71,7 +71,7 @@ def main():
         rainbow_file.write(result)
 
     else:
-        comm.send(generate_chain(piece, steps, length), dest=0, tag=GLOBAL_TAG)
+        comm.send(generate_chain(piece, steps), dest=0, tag=GLOBAL_TAG)
 
 
 if __name__ == "__main__":
